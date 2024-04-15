@@ -1,0 +1,31 @@
+#kernel_addr_r=	0x00080000
+#scriptaddr=	0x02400000
+#pxefile_addr_r=0x02500000
+#fdt_addr_r=	0x02600000
+#ramdisk_addr_r=0x02700000
+#fdt_addr=	0x2df96b00
+#fdtcontroladdr=0x3f733860
+
+setenv xen_addr_r 0x02700000
+
+fatload mmc 0 ${kernel_addr_r} zephyr.bin
+
+fdt addr ${fdt_addr} 0x40000
+fdt resize
+fdt chosen
+
+fdt set /chosen \#address-cells <1>
+fdt set /chosen \#size-cells <1>
+
+fdt mknod /chosen module@0
+fdt set /chosen/module@0 compatible "xen,linux-zimage" "xen,multiboot-module"
+fdt set /chosen/module@0 reg <${kernel_addr_r} 0x${filesize} >
+
+setenv bootargs "console=dtuart dtuart=/soc/serial@7d001000 dom0_mem=128M"
+fdt rm /soc/serial@7d001400 
+fdt rm /soc/serial@7d001a00
+
+fdt print /chosen
+
+fatload mmc 0 ${xen_addr_r} xen
+booti ${xen_addr_r} - ${fdt_addr}
