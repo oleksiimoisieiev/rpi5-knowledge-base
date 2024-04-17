@@ -22,10 +22,14 @@ fdt set /chosen/module@0 compatible "xen,linux-zimage" "xen,multiboot-module"
 fdt set /chosen/module@0 reg <${kernel_addr_r} 0x${filesize} >
 
 setenv bootargs "console=dtuart dtuart=/soc/serial@7d001000 dom0_mem=128M"
+fdt set /chosen xen,xen-bootargs "console=dtuart dtuart=/soc/serial@7d001000 dom0_mem=128M"
 fdt rm /soc/serial@7d001400 
 fdt rm /soc/serial@7d001a00
 
+fdt set /soc/gpio@7d517c00 xen,passthrough
+
 fdt print /chosen
+printenv
 
 fatload mmc 0 ${xen_addr_r} xen
 booti ${xen_addr_r} - ${fdt_addr}
